@@ -1,14 +1,15 @@
 package com.baiyi.opscloud.facade.impl;
 
 import com.baiyi.opscloud.common.util.BeanCopierUtils;
+import com.baiyi.opscloud.common.util.IDUtils;
 import com.baiyi.opscloud.domain.BusinessWrapper;
 import com.baiyi.opscloud.domain.DataTable;
 import com.baiyi.opscloud.domain.ErrorEnum;
 import com.baiyi.opscloud.domain.generator.opscloud.OcBusinessTag;
 import com.baiyi.opscloud.domain.generator.opscloud.OcTag;
 import com.baiyi.opscloud.domain.param.tag.TagParam;
-import com.baiyi.opscloud.domain.vo.tag.OcBusinessTagVO;
-import com.baiyi.opscloud.domain.vo.tag.OcTagVO;
+import com.baiyi.opscloud.domain.vo.tag.BusinessTagVO;
+import com.baiyi.opscloud.domain.vo.tag.TagVO;
 import com.baiyi.opscloud.facade.TagFacade;
 import com.baiyi.opscloud.service.tag.OcBusinessTagService;
 import com.baiyi.opscloud.service.tag.OcTagService;
@@ -38,24 +39,23 @@ public class TagFacadeImpl implements TagFacade {
     public static final boolean ACTION_UPDATE = false;
 
     @Override
-    public DataTable<OcTagVO.Tag> queryTagPage(TagParam.PageQuery pageQuery) {
+    public DataTable<TagVO.Tag> queryTagPage(TagParam.PageQuery pageQuery) {
         DataTable<OcTag> table = ocTagService.queryOcTagByParam(pageQuery);
-        List<OcTagVO.Tag> page = BeanCopierUtils.copyListProperties(table.getData(), OcTagVO.Tag.class);
-        DataTable<OcTagVO.Tag> dataTable = new DataTable<>(page, table.getTotalNum());
-        return dataTable;
+        List<TagVO.Tag> page = BeanCopierUtils.copyListProperties(table.getData(), TagVO.Tag.class);
+        return new DataTable<>(page, table.getTotalNum());
     }
 
     @Override
-    public BusinessWrapper<Boolean> addTag(OcTagVO.Tag tag) {
+    public BusinessWrapper<Boolean> addTag(TagVO.Tag tag) {
         return saveTag(tag, ACTION_ADD);
     }
 
     @Override
-    public BusinessWrapper<Boolean> updateTag(OcTagVO.Tag tag) {
+    public BusinessWrapper<Boolean> updateTag(TagVO.Tag tag) {
         return saveTag(tag, ACTION_UPDATE);
     }
 
-    private BusinessWrapper<Boolean> saveTag(OcTagVO.Tag tag, boolean action) {
+    private BusinessWrapper<Boolean> saveTag(TagVO.Tag tag, boolean action) {
         OcTag checkOcTagKey = ocTagService.queryOcTagByKey(tag.getTagKey());
         OcTag ocTag = BeanCopierUtils.copyProperties(tag, OcTag.class);
         // 对象存在 && 新增
@@ -74,50 +74,59 @@ public class TagFacadeImpl implements TagFacade {
         OcTag ocTag = ocTagService.queryOcTagById(id);
         if (ocTag == null)
             return new BusinessWrapper<>(ErrorEnum.TAG_NOT_EXIST);
-        // 判断server绑定的资源
-        // int count = ocServerService.countByEnvType(ocEnv.getEnvType());
-        int count = 0;
-        if (count == 0) {
+        // 判断tag是否被使用
+        if (ocBusinessTagService.countOcTagHasUsed(id) == 0) {
             ocTagService.deleteOcTagById(id);
             return BusinessWrapper.SUCCESS;
-        } else {
-            return new BusinessWrapper<>(ErrorEnum.TAG_HAS_USED);
         }
+        return new BusinessWrapper<>(ErrorEnum.TAG_HAS_USED);
     }
 
     @Override
-    public List<OcTagVO.Tag> queryBusinessTag(TagParam.BusinessQuery businessQuery) {
+    public List<TagVO.Tag> queryBusinessTag(TagParam.BusinessQuery businessQuery) {
         List<OcTag> ocTagList = ocTagService.queryOcTagByParam(businessQuery);
-        return BeanCopierUtils.copyListProperties(ocTagList, OcTagVO.Tag.class);
+        return BeanCopierUtils.copyListProperties(ocTagList, TagVO.Tag.class);
     }
 
     @Override
-    public List<OcTagVO.Tag> queryNotInBusinessTag(TagParam.BusinessQuery businessQuery) {
+    public List<TagVO.Tag> queryNotInBusinessTag(TagParam.BusinessQuery businessQuery) {
         List<OcTag> ocTagList = ocTagService.queryOcTagNotInByParam(businessQuery);
-        return BeanCopierUtils.copyListProperties(ocTagList, OcTagVO.Tag.class);
+        return BeanCopierUtils.copyListProperties(ocTagList, TagVO.Tag.class);
     }
 
     @Transactional
     @Override
-    public BusinessWrapper<Boolean> updateBusinessTag(OcBusinessTagVO.BusinessTag businessTag) {
+    public BusinessWrapper<Boolean> updateBusinessTag(BusinessTagVO.BusinessTag businessTag) {
+        if (!IDUtils.isEmpty(businessTag.getBusinessId()))
+            return updateBusinessTagById(businessTag);
+        businessTag.getBusinessIds().forEach(id -> {
+                    BusinessTagVO.BusinessTag pre = BeanCopierUtils.copyProperties(businessTag, BusinessTagVO.BusinessTag.class);
+                    pre.setBusinessId(id);
+                    updateBusinessTagById(pre);
+                });
+        return BusinessWrapper.SUCCESS;
+    }
+
+    private BusinessWrapper<Boolean> updateBusinessTagById(BusinessTagVO.BusinessTag businessTag) {
         TagParam.BusinessQuery businessQuery = new TagParam.BusinessQuery();
         businessQuery.setBusinessType(businessTag.getBusinessType());
         businessQuery.setBusinessId(businessTag.getBusinessId());
         // 业务对象所有的标签
         List<OcTag> tagList = ocTagService.queryOcTagByParam(businessQuery);
         Map<Integer, OcTag> tagMap = getTagMap(tagList);
-        for (Integer tagId : businessTag.getTagIds()) {
+
+        businessTag.getTagIds().forEach(tagId -> {
             OcBusinessTag ocBusinessTag = queryOcBusinessTag(businessTag, tagId);
             if (ocBusinessTag == null) {
                 ocBusinessTagService.addOcBusinessTag(getOcBusinessTag(businessTag, tagId));
             } else {
                 tagMap.remove(tagId);
             }
-        }
-        for (Integer tagId : tagMap.keySet()) {
+        });
+        tagMap.keySet().forEach(tagId -> {
             businessTag.setTagId(tagId);
             ocBusinessTagService.deleteOcBusinessTagByUniqueKey(businessTag);
-        }
+        });
         return BusinessWrapper.SUCCESS;
     }
 
@@ -132,12 +141,12 @@ public class TagFacadeImpl implements TagFacade {
             deleteTagById(ocBusinessTag.getId());
     }
 
-    private OcBusinessTag getOcBusinessTag(OcBusinessTagVO.BusinessTag businessTag, int tagId) {
+    private OcBusinessTag getOcBusinessTag(BusinessTagVO.BusinessTag businessTag, int tagId) {
         businessTag.setTagId(tagId);
         return BeanCopierUtils.copyProperties(businessTag, OcBusinessTag.class);
     }
 
-    private OcBusinessTag queryOcBusinessTag(OcBusinessTagVO.BusinessTag businessTag, int tagId) {
+    private OcBusinessTag queryOcBusinessTag(BusinessTagVO.BusinessTag businessTag, int tagId) {
         businessTag.setTagId(tagId);
         return ocBusinessTagService.queryOcBusinessTagByUniqueKey(businessTag);
     }
@@ -150,8 +159,7 @@ public class TagFacadeImpl implements TagFacade {
          * apple1,apple12的id都为1。
          * 可以用 (k1,k2)->k1 来设置，如果有重复的key,则保留key1,舍弃key2
          */
-        Map<Integer, OcTag> tagMap = tagList.stream().collect(Collectors.toMap(OcTag::getId, a -> a, (k1, k2) -> k1));
-        return tagMap;
+        return tagList.stream().collect(Collectors.toMap(OcTag::getId, a -> a, (k1, k2) -> k1));
     }
 
 }

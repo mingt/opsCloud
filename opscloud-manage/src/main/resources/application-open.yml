@@ -1,8 +1,9 @@
 logging:
-  path: ./log
   level:
     # swagger 警告日志忽略
     io.swagger.models.parameters.AbstractSerializableParameter: error
+  file:
+    path: /logs
 
 # 白名单配置
 white:
@@ -10,10 +11,11 @@ white:
 
 opscloud:
   version: 3.0
+  openTask: true
 
 spring:
   profiles:
-    include: common-prod,zabbix-prod,ldap-prod,jumpserver-prod,aliyun-prod,aws-prod,gitlab-prod,vcsa-prod,cloud-prod
+    include: common,account-open,zabbix-open,ldap-open,jumpserver-open,aliyun-open,aws-open,gitlab-open,vcsa-open,cloud,ansible-open,xterm-open,tencent-cloud-open,kubernetes-open
   redis:
     host: redis.opscloud.top
     port: 6379
@@ -24,6 +26,8 @@ spring:
         max-idle: 20
         max-active: 100
         min-idle: 0
+  jackson:
+    time-zone: GMT+8
 
 app:
   datasource:
@@ -32,11 +36,19 @@ app:
       username: opscloud
       password: 123456
       driver-class-name: com.mysql.jdbc.Driver
+      minimum-idle: 3
+      maximum-pool-size: 10
+      max-lifetime: 30000
+      connection-test-query: SELECT 1
     jumpserver:
       url: jdbc:mysql://jumpserver.mysql.opscloud.top:3306/jumpserver?useUnicode=true&characterEncoding=utf8&autoReconnect=true
       username: jumpserver
       password: 123456
       driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 3
+      maximum-pool-size: 10
+      max-lifetime: 30000
+      connection-test-query: SELECT 1
 
 
 # java -jar -Djasypt.encryptor.password=${password}

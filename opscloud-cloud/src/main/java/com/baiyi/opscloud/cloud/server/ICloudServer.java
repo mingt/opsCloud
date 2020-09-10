@@ -27,7 +27,24 @@ public interface ICloudServer {
     Boolean sync(boolean pushName);
 
     /**
-     * 更新Cloudserver by instanceId
+     * 录入实例
+     *
+     * @param regionId
+     * @param instanceId
+     * @return
+     */
+    Boolean record(String regionId, String instanceId);
+
+    /**
+     * 设置云服务器离线
+     *
+     * @param serverId
+     * @return
+     */
+    void offline(int serverId);
+
+    /**
+     * 更新CloudServer by instanceId
      *
      * @param instanceId
      * @return
@@ -36,6 +53,7 @@ public interface ICloudServer {
 
     /**
      * 开机
+     *
      * @param id
      * @return
      */
@@ -43,10 +61,25 @@ public interface ICloudServer {
 
     /**
      * 关机
+     *
      * @param id
      * @return
      */
     BusinessWrapper<Boolean> stop(Integer id);
 
+    /**
+     * 查询电源状态
+     *
+     * @param id
+     * @return
+     */
+    int queryPowerStatus(Integer id);
 
+    /**
+     * 释放云服务器
+     *
+     * @param instanceId
+     * @return
+     */
+    Boolean delete(String instanceId);
 }

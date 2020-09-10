@@ -7,6 +7,9 @@ import com.baiyi.opscloud.domain.param.auth.ResourceParam;
 import com.baiyi.opscloud.domain.param.auth.RoleParam;
 import com.baiyi.opscloud.domain.param.auth.UserRoleParam;
 import com.baiyi.opscloud.domain.vo.auth.*;
+import com.baiyi.opscloud.domain.vo.auth.menu.MenuVO;
+
+import java.util.List;
 
 /**
  * @Author baiyi
@@ -15,11 +18,11 @@ import com.baiyi.opscloud.domain.vo.auth.*;
  */
 public interface AuthFacade {
 
-    DataTable<OcRoleVO.Role> queryRolePage(RoleParam.PageQuery pageQuery);
+    DataTable<RoleVO.Role> queryRolePage(RoleParam.PageQuery pageQuery);
 
-    void addRole(OcRoleVO.Role role);
+    void addRole(RoleVO.Role role);
 
-    void updateRole(OcRoleVO.Role role);
+    void updateRole(RoleVO.Role role);
 
     BusinessWrapper<Boolean> deleteRoleById(int id);
 
@@ -30,36 +33,36 @@ public interface AuthFacade {
      * @param pageQuery
      * @return
      */
-    DataTable<OcResourceVO.Resource> queryRoleBindResourcePage(ResourceParam.BindResourcePageQuery pageQuery);
+    DataTable<ResourceVO.Resource> queryRoleBindResourcePage(ResourceParam.BindResourcePageQuery pageQuery);
 
-    DataTable<OcResourceVO.Resource> queryRoleUnbindResourcePage(ResourceParam.BindResourcePageQuery pageQuery);
+    DataTable<ResourceVO.Resource> queryRoleUnbindResourcePage(ResourceParam.BindResourcePageQuery pageQuery);
 
-    void bindRoleResource(OcRoleResourceVO.RoleResource roleResource);
+    void bindRoleResource(RoleResourceVO.RoleResource roleResource);
 
     void unbindRoleResource(int roleResourceId);
 
-    DataTable<OcResourceVO.Resource> queryResourcePage(ResourceParam.PageQuery pageQuery);
+    DataTable<ResourceVO.Resource> queryResourcePage(ResourceParam.PageQuery pageQuery);
 
-    void addResource(OcResourceVO.Resource resource);
+    void addResource(ResourceVO.Resource resource);
 
-    void updateResource(OcResourceVO.Resource resource);
+    void updateResource(ResourceVO.Resource resource);
 
-    void updateResourceNeedAuth(OcResourceVO.Resource resource);
+    void updateResourceNeedAuth(ResourceVO.Resource resource);
 
     BusinessWrapper<Boolean> deleteResourceById(int id);
 
     // resource group
-    DataTable<OcGroupVO.Group> queryGroupPage(GroupParam.PageQuery pageQuery);
+    DataTable<GroupVO.Group> queryGroupPage(GroupParam.PageQuery pageQuery);
 
-    void addGroup(OcGroupVO.Group group);
+    void addGroup(GroupVO.Group group);
 
-    void updateGroup(OcGroupVO.Group group);
+    void updateGroup(GroupVO.Group group);
 
     BusinessWrapper<Boolean> deleteGroupById(int id);
 
-    DataTable<OcUserRoleVO.UserRole> queryUserRolePage(UserRoleParam.PageQuery pageQuery);
+    DataTable<UserRoleVO.UserRole> queryUserRolePage(UserRoleParam.PageQuery pageQuery);
 
-    void addUserRole(OcUserRoleVO.UserRole userRole);
+    void addUserRole(UserRoleVO.UserRole userRole);
 
     BusinessWrapper<Boolean> deleteUserRoleById(int id);
 
@@ -70,4 +73,9 @@ public interface AuthFacade {
      */
     BusinessWrapper<Boolean> authenticationByResourceName(String resourceName);
 
+    List<MenuVO> queryUserMenu();
+
+    BusinessWrapper<Boolean> saveRoleMenu(AuthMenuVO.Menu menu);
+
+    AuthMenuVO.Menu queryRoleMenuByRoleId(int roleId);
 }

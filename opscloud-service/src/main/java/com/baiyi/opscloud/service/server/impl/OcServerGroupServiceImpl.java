@@ -3,6 +3,7 @@ package com.baiyi.opscloud.service.server.impl;
 import com.baiyi.opscloud.domain.DataTable;
 import com.baiyi.opscloud.domain.generator.opscloud.OcServerGroup;
 import com.baiyi.opscloud.domain.param.server.ServerGroupParam;
+import com.baiyi.opscloud.domain.param.user.UserServerTreeParam;
 import com.baiyi.opscloud.mapper.opscloud.OcServerGroupMapper;
 import com.baiyi.opscloud.service.server.OcServerGroupService;
 import com.github.pagehelper.Page;
@@ -24,10 +25,10 @@ public class OcServerGroupServiceImpl implements OcServerGroupService {
     private OcServerGroupMapper ocServerGroupMapper;
 
     @Override
-    public int countByGrpType(int grpType){
+    public int countByGrpType(int grpType) {
         Example example = new Example(OcServerGroup.class);
         Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("grpType",grpType);
+        criteria.andEqualTo("grpType", grpType);
         return ocServerGroupMapper.selectCountByExample(example);
     }
 
@@ -67,8 +68,13 @@ public class OcServerGroupServiceImpl implements OcServerGroupService {
     }
 
     @Override
-    public List<OcServerGroup> queryUserPermissionOcServerGroupByUserId(int userId){
-        return ocServerGroupMapper.queryUerPermissionOcServerGroupByUserId(userId);
+    public List<OcServerGroup> queryUserPermissionOcServerGroupByUserId(int userId) {
+        return ocServerGroupMapper.queryUserPermissionOcServerGroupByUserId(userId);
+    }
+
+    @Override
+    public List<OcServerGroup> queryAll() {
+        return ocServerGroupMapper.selectAll();
     }
 
     @Override
@@ -79,11 +85,27 @@ public class OcServerGroupServiceImpl implements OcServerGroupService {
     }
 
     @Override
-    public DataTable<OcServerGroup> queryUserExcludeOcServerGroupByParam(ServerGroupParam.UserServerGroupPageQuery  pageQuery) {
+    public DataTable<OcServerGroup> queryUserExcludeOcServerGroupByParam(ServerGroupParam.UserServerGroupPageQuery pageQuery) {
         Page page = PageHelper.startPage(pageQuery.getPage(), pageQuery.getLength().intValue());
         List<OcServerGroup> ocServerGroupList = ocServerGroupMapper.queryUserExcludeOcServerGroupByParam(pageQuery);
         return new DataTable<>(ocServerGroupList, page.getTotal());
     }
 
+    @Override
+    public List<OcServerGroup> queryUserPermissionOcServerGroupByParam(UserServerTreeParam.UserServerTreeQuery queryParam) {
+        return ocServerGroupMapper.queryUserPermissionOcServerGroupByParam(queryParam);
+    }
+
+    @Override
+    public List<OcServerGroup> queryUserTicketOcServerGroupByParam(ServerGroupParam.UserTicketOcServerGroupQuery pageQuery) {
+        PageHelper.startPage(pageQuery.getPage(), pageQuery.getLength().intValue());
+        return ocServerGroupMapper.queryUserTicketOcServerGroupByParam(pageQuery);
+    }
+
+    @Override
+    public List<OcServerGroup> queryLogMemberOcServerGroupByParam(ServerGroupParam.LogMemberServerGroupQuery pageQuery) {
+        PageHelper.startPage(pageQuery.getPage(), pageQuery.getLength().intValue());
+        return ocServerGroupMapper.queryLogMemberOcServerGroupByParam(pageQuery);
+    }
 
 }

@@ -4,9 +4,10 @@ import com.baiyi.opscloud.domain.BusinessWrapper;
 import com.baiyi.opscloud.domain.DataTable;
 import com.baiyi.opscloud.domain.param.cloud.CloudDBDatabaseParam;
 import com.baiyi.opscloud.domain.param.cloud.CloudDBParam;
-import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBAccountVO;
-import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBDatabaseVO;
-import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDatabaseSlowLogVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDBAccountVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDBDatabaseVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDBVO;
 
 /**
  * @Author baiyi
@@ -15,7 +16,7 @@ import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBVO;
  */
 public interface CloudDBFacade {
 
-    DataTable<OcCloudDBVO.CloudDB> fuzzyQueryCloudDBPage(CloudDBParam.PageQuery pageQuery);
+    DataTable<CloudDBVO.CloudDB> fuzzyQueryCloudDBPage(CloudDBParam.PageQuery pageQuery);
 
     BusinessWrapper<Boolean> deleteCloudDBById(int id);
 
@@ -23,10 +24,12 @@ public interface CloudDBFacade {
 
     BusinessWrapper<Boolean> syncCloudDatabase(int id);
 
-    DataTable<OcCloudDBDatabaseVO.CloudDBDatabase> fuzzyQueryCloudDBDatabasePage(CloudDBDatabaseParam.PageQuery pageQuery);
+    DataTable<CloudDBDatabaseVO.CloudDBDatabase> fuzzyQueryCloudDBDatabasePage(CloudDBDatabaseParam.PageQuery pageQuery);
 
-    BusinessWrapper<Boolean> updateBaseCloudDBDatabase(OcCloudDBDatabaseVO.CloudDBDatabase cloudDBDatabase);
+    BusinessWrapper<Boolean> updateBaseCloudDBDatabase(CloudDBDatabaseVO.CloudDBDatabase cloudDBDatabase);
 
-    BusinessWrapper<Boolean> privilegeAccount(OcCloudDBAccountVO.PrivilegeAccount privilegeAccount);
+    BusinessWrapper<Boolean> privilegeAccount(CloudDBAccountVO.PrivilegeAccount privilegeAccount);
+
+    DataTable<CloudDatabaseSlowLogVO.SlowLog> queryCloudDBDatabaseSlowLogPage(CloudDBDatabaseParam.SlowLogPageQuery pageQuery);
 
 }

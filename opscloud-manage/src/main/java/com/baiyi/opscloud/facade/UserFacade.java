@@ -2,12 +2,15 @@ package com.baiyi.opscloud.facade;
 
 import com.baiyi.opscloud.domain.BusinessWrapper;
 import com.baiyi.opscloud.domain.DataTable;
-import com.baiyi.opscloud.domain.param.user.UserGroupParam;
+import com.baiyi.opscloud.domain.generator.opscloud.OcUser;
+import com.baiyi.opscloud.domain.param.user.UserBusinessGroupParam;
 import com.baiyi.opscloud.domain.param.user.UserParam;
-import com.baiyi.opscloud.domain.vo.user.OcUserApiTokenVO;
-import com.baiyi.opscloud.domain.vo.user.OcUserCredentialVO;
-import com.baiyi.opscloud.domain.vo.user.OcUserGroupVO;
-import com.baiyi.opscloud.domain.vo.user.OcUserVO;
+import com.baiyi.opscloud.domain.param.user.UserServerTreeParam;
+import com.baiyi.opscloud.domain.vo.server.ServerTreeVO;
+import com.baiyi.opscloud.domain.vo.user.UserApiTokenVO;
+import com.baiyi.opscloud.domain.vo.user.UserCredentialVO;
+import com.baiyi.opscloud.domain.vo.user.UserGroupVO;
+import com.baiyi.opscloud.domain.vo.user.UserVO;
 
 /**
  * @Author baiyi
@@ -16,38 +19,62 @@ import com.baiyi.opscloud.domain.vo.user.OcUserVO;
  */
 public interface UserFacade {
 
-    DataTable<OcUserVO.User> queryUserPage(UserParam.PageQuery pageQuery);
+    DataTable<UserVO.User> queryUserPage(UserParam.UserPageQuery pageQuery);
 
-    OcUserVO.User queryUserDetail();
+    UserVO.User queryUserDetail();
 
-    DataTable<OcUserVO.User> fuzzyQueryUserPage(UserParam.PageQuery pageQuery);
+    UserVO.User queryUserDetailByUsername(String username);
 
-    BusinessWrapper<Boolean> applyUserApiToken(OcUserApiTokenVO.UserApiToken userApiToken);
+    DataTable<UserVO.User> fuzzyQueryUserPage(UserParam.UserPageQuery pageQuery);
+
+    BusinessWrapper<UserApiTokenVO.UserApiToken> applyUserApiToken(UserApiTokenVO.UserApiToken userApiToken);
 
     BusinessWrapper<Boolean> delUserApiToken(int id);
 
-    BusinessWrapper<Boolean> saveUserCredentia(OcUserCredentialVO.UserCredential userCredential);
+    BusinessWrapper<UserCredentialVO.UserCredential> saveUserCredentia(UserCredentialVO.UserCredential userCredential);
 
     String getRandomPassword();
 
-    BusinessWrapper<Boolean> updateBaseUser(OcUserVO.User user);
+    BusinessWrapper<Boolean> updateBaseUser(UserParam.UpdateUser updateUser);
 
-    BusinessWrapper<Boolean> createUser(OcUserVO.User user);
+    BusinessWrapper<Boolean> createUser(UserParam.CreateUser createUser);
 
-    DataTable<OcUserGroupVO.UserGroup> queryUserGroupPage(UserGroupParam.PageQuery pageQuery);
+    DataTable<UserGroupVO.UserGroup> queryUserGroupPage(UserBusinessGroupParam.PageQuery pageQuery);
 
-    BusinessWrapper<Boolean> grantUserUserGroup(UserGroupParam.UserUserGroupPermission userUserGroupPermission);
+    BusinessWrapper<Boolean> grantUserUserGroup(UserBusinessGroupParam.UserUserGroupPermission userUserGroupPermission);
 
-    BusinessWrapper<Boolean> revokeUserUserGroup(UserGroupParam.UserUserGroupPermission userUserGroupPermission);
+    BusinessWrapper<Boolean> revokeUserUserGroup(UserBusinessGroupParam.UserUserGroupPermission userUserGroupPermission);
 
-    DataTable<OcUserGroupVO.UserGroup> queryUserIncludeUserGroupPage(UserGroupParam.UserUserGroupPageQuery pageQuery);
+    DataTable<UserGroupVO.UserGroup> queryUserIncludeUserGroupPage(UserBusinessGroupParam.UserUserGroupPageQuery pageQuery);
 
-    DataTable<OcUserGroupVO.UserGroup> queryUserExcludeUserGroupPage(UserGroupParam.UserUserGroupPageQuery pageQuery);
+    DataTable<UserGroupVO.UserGroup> queryUserExcludeUserGroupPage(UserBusinessGroupParam.UserUserGroupPageQuery pageQuery);
 
-    BusinessWrapper<Boolean> addUserGroup(OcUserGroupVO.UserGroup userGroup);
+    BusinessWrapper<Boolean> addUserGroup(UserGroupVO.UserGroup userGroup);
+
+    BusinessWrapper<Boolean> updateUserGroup(UserGroupVO.UserGroup userGroup);
 
     BusinessWrapper<Boolean> syncUserGroup();
 
     BusinessWrapper<Boolean> syncUser();
+
+    ServerTreeVO.MyServerTree queryUserServerTree(UserServerTreeParam.UserServerTreeQuery userServerTreeQuery);
+
+    /**
+     * 从当前会话中查询用户
+     *
+     * @return
+     */
+    OcUser getOcUserBySession();
+
+
+    /**
+     * 用户离职
+     * @param userId
+     * @return
+     */
+    BusinessWrapper<Boolean> retireUser(int userId);
+
+    BusinessWrapper<Boolean> beReinstatedUser(int userId);
+
 
 }

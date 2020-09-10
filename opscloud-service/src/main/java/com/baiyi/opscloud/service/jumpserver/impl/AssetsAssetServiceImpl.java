@@ -44,10 +44,13 @@ public class AssetsAssetServiceImpl implements AssetsAssetService {
         Example example = new Example(AssetsAsset.class);
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("hostname", hostname);
-        List<AssetsAsset> list = assetsAssetMapper.selectByExample(example);
-        if (list != null && !list.isEmpty())
-            return list.get(0);
-        return null;
+        PageHelper.startPage(1, 1);
+        return assetsAssetMapper.selectOneByExample(example);
+    }
+
+    @Override
+    public List<AssetsAsset> queryAll() {
+        return assetsAssetMapper.selectAll();
     }
 
     @Override
@@ -58,5 +61,10 @@ public class AssetsAssetServiceImpl implements AssetsAssetService {
     @Override
     public void addAssetsAsset(AssetsAsset assetsAsset) {
         assetsAssetMapper.insert(assetsAsset);
+    }
+
+    @Override
+    public void deleteAssetsAssetById(String id) {
+        assetsAssetMapper.deleteByPrimaryKey(id);
     }
 }

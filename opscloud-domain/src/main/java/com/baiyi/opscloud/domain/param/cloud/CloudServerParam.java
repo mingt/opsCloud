@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 
 public class CloudServerParam {
 
@@ -27,5 +29,18 @@ public class CloudServerParam {
         private Integer serverStatus;
     }
 
+    @Data
+    @NoArgsConstructor
+    @ApiModel
+    public static class DeleteInstance {
+
+        @ApiModelProperty(value = "云主机类型")
+        @NotBlank(message = "云主机类型不能为空")
+        private String key;
+
+        @ApiModelProperty(value = "云主机实例id")
+        @NotBlank(message = "云主机实例不能为空")
+        private String instanceId;
+    }
 
 }

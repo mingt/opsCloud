@@ -3,10 +3,13 @@ package com.baiyi.opscloud.aliyun.rds.mysql;
 import com.aliyuncs.rds.model.v20140815.DescribeDBInstanceAttributeResponse;
 import com.aliyuncs.rds.model.v20140815.DescribeDBInstancesResponse;
 import com.aliyuncs.rds.model.v20140815.DescribeDatabasesResponse;
-import com.baiyi.opscloud.aliyun.core.config.AliyunAccount;
+import com.baiyi.opscloud.aliyun.core.config.AliyunCoreConfig;
 import com.baiyi.opscloud.domain.BusinessWrapper;
+import com.baiyi.opscloud.domain.DataTable;
 import com.baiyi.opscloud.domain.generator.opscloud.OcCloudDb;
 import com.baiyi.opscloud.domain.generator.opscloud.OcCloudDbAccount;
+import com.baiyi.opscloud.domain.param.cloud.CloudDBDatabaseParam;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDatabaseSlowLogVO;
 
 import java.util.List;
 import java.util.Map;
@@ -28,9 +31,9 @@ public interface AliyunRDSMysql {
     Map<String, List<DescribeDBInstanceAttributeResponse.DBInstanceAttribute>>
     getDBInstanceAttributeMap(Map<String, List<DescribeDBInstancesResponse.DBInstance>> dbInstanceMap);
 
-    List<DescribeDatabasesResponse.Database> getDatabaseList(AliyunAccount aliyunAccount, String dbInstanceId);
+    List<DescribeDatabasesResponse.Database> getDatabaseList(AliyunCoreConfig.AliyunAccount aliyunAccount, String dbInstanceId);
 
-    BusinessWrapper<Boolean> createAccount(AliyunAccount aliyunAccount, OcCloudDbAccount ocCloudDbAccount, String privilege);
+    BusinessWrapper<Boolean> createAccount(AliyunCoreConfig.AliyunAccount aliyunAccount, OcCloudDbAccount ocCloudDbAccount, String privilege);
 
     /**
      * 全库授权
@@ -39,7 +42,7 @@ public interface AliyunRDSMysql {
      * @param privilege
      * @return
      */
-    BusinessWrapper<Boolean> grantAccountPrivilege(AliyunAccount aliyunAccount, OcCloudDbAccount ocCloudDbAccount, String privilege);
+    BusinessWrapper<Boolean> grantAccountPrivilege(AliyunCoreConfig.AliyunAccount aliyunAccount, OcCloudDbAccount ocCloudDbAccount, String privilege);
 
     /**
      * 全库撤销授权
@@ -47,7 +50,9 @@ public interface AliyunRDSMysql {
      * @param ocCloudDbAccount
      * @return
      */
-    BusinessWrapper<Boolean> revokeAccountPrivilege(AliyunAccount aliyunAccount, OcCloudDbAccount ocCloudDbAccount);
+    BusinessWrapper<Boolean> revokeAccountPrivilege(AliyunCoreConfig.AliyunAccount aliyunAccount, OcCloudDbAccount ocCloudDbAccount);
 
-    BusinessWrapper<Boolean> deleteAccount(AliyunAccount aliyunAccount, OcCloudDb ocCloudDb,  OcCloudDbAccount ocCloudDbAccount);
+    BusinessWrapper<Boolean> deleteAccount(AliyunCoreConfig.AliyunAccount aliyunAccount, OcCloudDb ocCloudDb, OcCloudDbAccount ocCloudDbAccount);
+
+    DataTable<CloudDatabaseSlowLogVO.SlowLog> querySlowLogPage(AliyunCoreConfig.AliyunAccount aliyunAccount, CloudDBDatabaseParam.SlowLogPageQuery pageQuery);
 }

@@ -1,7 +1,7 @@
 package com.baiyi.opscloud.domain.generator.opscloud;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "oc_account")
 public class OcAccount {
@@ -69,16 +69,18 @@ public class OcAccount {
      */
     private String phone;
 
+    @Column(name = "ssh_key")
+    private Integer sshKey;
     /**
      * 创建时间
      */
-    @Column(name = "create_time")
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     /**
      * 更新时间
      */
-    @Column(name = "update_time")
+    @Column(name = "update_time", insertable = false, updatable = false)
     private Date updateTime;
 
     private String comment;
@@ -313,6 +315,14 @@ public class OcAccount {
      */
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Integer getSshKey() {
+        return sshKey;
+    }
+
+    public void setSshKey(Integer sshKey) {
+        this.sshKey = sshKey;
     }
 
     /**

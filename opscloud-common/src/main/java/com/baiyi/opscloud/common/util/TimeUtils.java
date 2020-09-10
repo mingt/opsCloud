@@ -40,6 +40,17 @@ public class TimeUtils {
     public static String timeFormat = "yyyy-MM-dd HH:mm:ss";
 
     /**
+     * 判断是否超时
+     *
+     * @param startTime
+     * @return
+     */
+    public static boolean checkTimeout(Long startTime, Long timeout) {
+        return (new Date().getTime() - startTime) >= timeout;
+    }
+
+
+    /**
      * 计算2个日期时间差
      *
      * @param fromDate
@@ -90,6 +101,22 @@ public class TimeUtils {
         Long diff = subTime / dayTime;
         return diff.intValue();
     }
+
+    /**
+     * 计算时间经过了多少分钟
+     *
+     * @param date
+     * @return
+     */
+    public static int calculateDateAgoMinute(Date date) {
+        long subTime = new Date().getTime() - date.getTime();
+        if (subTime < 0) {
+            throw new RuntimeException("计算时间有误!");
+        }
+        Long diff = subTime / minuteTime;
+        return diff.intValue();
+    }
+
 
     /**
      * 计算两个时间的时间戳差
@@ -363,5 +390,9 @@ public class TimeUtils {
     public static String dateToStr(Date date) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return format.format(date);
+    }
+
+    public static Boolean isTimeOut(Date startTime, Integer minute) {
+        return (startTime.getTime() + (minute * minuteTime)) < new Date().getTime();
     }
 }

@@ -4,7 +4,6 @@ import com.baiyi.opscloud.domain.BusinessWrapper;
 import com.baiyi.opscloud.domain.generator.jumpserver.*;
 import com.baiyi.opscloud.domain.generator.opscloud.OcServerGroup;
 import com.baiyi.opscloud.domain.generator.opscloud.OcUser;
-import com.baiyi.opscloud.domain.vo.user.OcUserCredentialVO;
 
 /**
  * @Author baiyi
@@ -55,25 +54,20 @@ public interface JumpserverCenter {
 
     void updateAssetsAsset(AssetsAsset assetsAsset);
 
-    void addAssetsAsset(AssetsAsset assetsAsset);
+    void addAssetsAsset(AssetsAsset assetsAsset,String nodeId);
 
     void bindAssetsAssetNodes(AssetsAsset assetsAsset, AssetsNode assetsNode);
 
     void bindAvssetsSystemuserAssets(String assetId);
 
-    Boolean grant(OcUser ocUser, String resource);
-
-    Boolean revoke(OcUser ocUser, String resource);
+    boolean delAssetsAsset(String assetId);
 
     boolean activeUsersUser(String username, boolean active);
 
     boolean delUsersUser(String username);
 
-    UsersUser createUsersUser(OcUser ocUser);
-
     boolean updateUsersUser(OcUser ocUser);
 
-    boolean pushKey(OcUser ocUser, OcUserCredentialVO.UserCredential credential);
 
     BusinessWrapper<Boolean> setUserActive(String id);
 
@@ -83,6 +77,7 @@ public interface JumpserverCenter {
 
     /**
      * 校验用户公钥是否存在
+     *
      * @param username
      * @return
      */

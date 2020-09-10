@@ -1,9 +1,9 @@
 package com.baiyi.opscloud.account.impl;
 
 import com.baiyi.opscloud.account.IAccount;
-import com.baiyi.opscloud.account.base.AccountType;
-import com.baiyi.opscloud.account.builder.OcAccountBuilder;
-import com.baiyi.opscloud.account.builder.OcUserBuilder;
+import com.baiyi.opscloud.common.base.AccountType;
+import com.baiyi.opscloud.account.builder.AccountBuilder;
+import com.baiyi.opscloud.account.builder.UserBuilder;
 import com.baiyi.opscloud.account.convert.ZabbixUserConvert;
 import com.baiyi.opscloud.common.util.RegexUtils;
 import com.baiyi.opscloud.common.util.ZabbixUtils;
@@ -38,12 +38,12 @@ public class ZabbixAccount extends BaseAccount implements IAccount {
 
     @Override
     protected List<OcUser> getUserList() {
-        return zabbixUserServer.getAllZabbixUser().stream().map(e -> OcUserBuilder.build(e)).collect(Collectors.toList());
+        return zabbixUserServer.getAllZabbixUser().stream().map(UserBuilder::build).collect(Collectors.toList());
     }
 
     @Override
     protected List<OcAccount> getOcAccountList() {
-        return zabbixUserServer.getAllZabbixUser().stream().map(e -> OcAccountBuilder.build(e)).collect(Collectors.toList());
+        return zabbixUserServer.getAllZabbixUser().stream().map(AccountBuilder::build).collect(Collectors.toList());
     }
 
     @Override
@@ -87,22 +87,24 @@ public class ZabbixAccount extends BaseAccount implements IAccount {
     private List<ZabbixUserMedia> getMediaList(OcUser user) {
         List<ZabbixUserMedia> mediaList = Lists.newArrayList();
         try {
-            RegexUtils.isEmail(user.getEmail());
-            ZabbixUserMedia mailMedia = ZabbixUserMedia.builder()
-                    .mediatypeid(ZabbixUserMedia.MEDIATYPE_MAIL)
-                    .sendto(user.getEmail())
-                    .build();
-            mediaList.add(mailMedia);
-        } catch (Exception e) {
+            if(RegexUtils.isEmail(user.getEmail())){
+                ZabbixUserMedia mailMedia = ZabbixUserMedia.builder()
+                        .mediatypeid(ZabbixUserMedia.MEDIATYPE_MAIL)
+                        .sendto(user.getEmail())
+                        .build();
+                mediaList.add(mailMedia);
+            }
+        } catch (Exception ignored) {
         }
         try {
-            RegexUtils.isPhone(user.getPhone());
-            ZabbixUserMedia mailMedia = ZabbixUserMedia.builder()
-                    .mediatypeid(ZabbixUserMedia.MEDIATYPE_PHONE)
-                    .sendto(user.getPhone())
-                    .build();
-            mediaList.add(mailMedia);
-        } catch (Exception e) {
+           if(RegexUtils.isPhone(user.getPhone())) {
+               ZabbixUserMedia mailMedia = ZabbixUserMedia.builder()
+                       .mediatypeid(ZabbixUserMedia.MEDIATYPE_PHONE)
+                       .sendto(user.getPhone())
+                       .build();
+               mediaList.add(mailMedia);
+           }
+        } catch (Exception ignored) {
         }
         return mediaList;
     }

@@ -3,8 +3,7 @@ package com.baiyi.opscloud.aliyun.ecs.handler;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.ecs.model.v20140526.*;
 import com.aliyuncs.exceptions.ClientException;
-import com.aliyuncs.exceptions.ServerException;
-import com.baiyi.opscloud.aliyun.core.AliyunCore;
+import com.baiyi.opscloud.aliyun.ecs.base.BaseAliyunECS;
 import com.baiyi.opscloud.common.util.JSONUtils;
 import com.baiyi.opscloud.domain.BusinessWrapper;
 import com.baiyi.opscloud.domain.ErrorEnum;
@@ -21,23 +20,16 @@ import java.util.List;
  * @Date 2020/1/14 10:09 上午
  * @Version 1.0
  */
-@Component
-public class AliyunECSHandler {
+@Component("AliyunECSHandler")
+public class AliyunECSHandler extends BaseAliyunECS {
 
     @Resource
-    private AliyunCore aliyunCore;
-
-    public static final int QUERY_PAGE_SIZE = 50;
+    private AliyunInstanceHandler aliyunInstanceHandler;
 
     public List<DescribeInstanceAutoRenewAttributeResponse.InstanceRenewAttribute> getInstanceRenewAttribute(String regionId, DescribeInstanceAutoRenewAttributeRequest describe) {
         IAcsClient client = acqAcsClient(regionId);
         try {
-            DescribeInstanceAutoRenewAttributeResponse response
-                    = client.getAcsResponse(describe);
-            return response.getInstanceRenewAttributes();
-        } catch (ServerException e) {
-            e.printStackTrace();
-            return null;
+            return client.getAcsResponse(describe).getInstanceRenewAttributes();
         } catch (ClientException e) {
             e.printStackTrace();
             return null;
@@ -45,33 +37,10 @@ public class AliyunECSHandler {
     }
 
     public DescribeDisksResponse getDisksResponse(String regionId, DescribeDisksRequest request) {
-        IAcsClient client;
-        client = acqAcsClient(regionId);
+        IAcsClient client = acqAcsClient(regionId);
         try {
-            DescribeDisksResponse response = client.getAcsResponse(request);
-            return response;
-        } catch (ServerException e) {
-            e.printStackTrace();
-            return null;
-        } catch (ClientException e) {
-            e.printStackTrace();
-            return null;
+            return client.getAcsResponse(request);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public DescribeInstancesResponse getInstancesResponse(String regionId, DescribeInstancesRequest describe) {
-        IAcsClient client;
-        client = acqAcsClient(regionId);
-        try {
-            DescribeInstancesResponse response = client.getAcsResponse(describe);
-            return response;
-        } catch (ServerException e) {
-            e.printStackTrace();
-            return null;
-        } catch (ClientException e) {
             e.printStackTrace();
             return null;
         }
@@ -83,7 +52,7 @@ public class AliyunECSHandler {
         instanceIds.add(instanceId);
         describe.setInstanceIds(JSONUtils.writeValueAsString(instanceIds));
         try {
-            DescribeInstancesResponse response = getInstancesResponse(regionId, describe);
+            DescribeInstancesResponse response = aliyunInstanceHandler.getInstancesResponse(regionId, describe);
             return response.getInstances().get(0);
         } catch (Exception e) {
             return null;
@@ -92,58 +61,54 @@ public class AliyunECSHandler {
 
     public List<DescribeInstancesResponse.Instance> getInstanceList(String regionId) {
         List<DescribeInstancesResponse.Instance> instanceList = Lists.newArrayList();
-        DescribeInstancesRequest describe = new DescribeInstancesRequest();
-        describe.setPageSize(QUERY_PAGE_SIZE);
-        DescribeInstancesResponse response = getInstancesResponse(regionId, describe);
-        instanceList.addAll(response.getInstances());
-        //cacheInstanceRenewAttribute(regionId, response);
-        // 获取总数
-        int totalCount = response.getTotalCount();
-        // 循环次数
-        int cnt = (totalCount + QUERY_PAGE_SIZE - 1) / QUERY_PAGE_SIZE;
-        for (int i = 1; i < cnt; i++) {
-            describe.setPageNumber(i + 1);
-            response = getInstancesResponse(regionId, describe);
-            instanceList.addAll(response.getInstances());
-            //cacheInstanceRenewAttribute(regionId, response);
+        try {
+            DescribeInstancesRequest describe = new DescribeInstancesRequest();
+            describe.setPageSize(QUERY_INSTANCE_PAGE_SIZE);
+            int size = QUERY_INSTANCE_PAGE_SIZE;
+            int pageNumber = 1;
+            // 循环取值
+            while (QUERY_INSTANCE_PAGE_SIZE <= size) {
+                describe.setPageNumber(pageNumber);
+                DescribeInstancesResponse response = aliyunInstanceHandler.getInstancesResponse(regionId, describe);
+                instanceList.addAll(response.getInstances());
+                size = response.getInstances() != null ? response.getInstances().size() : 0;
+                pageNumber++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return instanceList;
     }
 
-    public BusinessWrapper<Boolean> start(String regionId,String instanceId) {
+    public BusinessWrapper<Boolean> start(String regionId, String instanceId) {
         try {
             StartInstanceRequest describe = new StartInstanceRequest();
             describe.setInstanceId(instanceId);
             StartInstanceResponse response = startInstanceResponse(regionId, describe);
             if (response != null && !StringUtils.isEmpty(response.getRequestId()))
-                return new BusinessWrapper<Boolean>(true);
+                return BusinessWrapper.SUCCESS;
         } catch (Exception e) {
+            e.printStackTrace();
         }
-        return new BusinessWrapper<Boolean>(ErrorEnum.CLOUD_SERVER_POWER_MGMT_FAILED);
+        return new BusinessWrapper<>(ErrorEnum.CLOUD_SERVER_POWER_MGMT_FAILED);
     }
 
-
-    public BusinessWrapper<Boolean> stop(String regionId,String instanceId) {
+    public BusinessWrapper<Boolean> stop(String regionId, String instanceId) {
         try {
             StopInstanceRequest describe = new StopInstanceRequest();
             describe.setInstanceId(instanceId);
             StopInstanceResponse response = stopInstanceResponse(regionId, describe);
             if (response != null && !StringUtils.isEmpty(response.getRequestId()))
-                return new BusinessWrapper<Boolean>(true);
-        } catch (Exception e) {
+                return BusinessWrapper.SUCCESS;
+        } catch (Exception ignored) {
         }
-        return new BusinessWrapper<Boolean>(ErrorEnum.CLOUD_SERVER_POWER_MGMT_FAILED);
+        return new BusinessWrapper<>(ErrorEnum.CLOUD_SERVER_POWER_MGMT_FAILED);
     }
-
 
     private StopInstanceResponse stopInstanceResponse(String regionId, StopInstanceRequest describe) {
         IAcsClient client = acqAcsClient(regionId);
         try {
-            StopInstanceResponse response = client.getAcsResponse(describe);
-            return response;
-        } catch (ServerException e) {
-            e.printStackTrace();
-            return null;
+            return client.getAcsResponse(describe);
         } catch (ClientException e) {
             e.printStackTrace();
             return null;
@@ -153,21 +118,34 @@ public class AliyunECSHandler {
     private StartInstanceResponse startInstanceResponse(String regionId, StartInstanceRequest describe) {
         IAcsClient client = acqAcsClient(regionId);
         try {
-            StartInstanceResponse response = client.getAcsResponse(describe);
-            return response;
-        } catch (ServerException e) {
-            e.printStackTrace();
-            return null;
+            return client.getAcsResponse(describe);
         } catch (ClientException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-
-    private IAcsClient acqAcsClient(String regionId) {
-        return aliyunCore.getAcsClient(regionId);
+    public Boolean delete(String regionId, String instanceId) {
+        try {
+            DeleteInstanceRequest request = new DeleteInstanceRequest();
+            request.setInstanceId(instanceId);
+            DeleteInstanceResponse response = deleteInstanceResponse(regionId, request);
+            if (response != null && !StringUtils.isEmpty(response.getRequestId()))
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
+    private DeleteInstanceResponse deleteInstanceResponse(String regionId, DeleteInstanceRequest request) {
+        IAcsClient client = acqAcsClient(regionId);
+        try {
+            return client.getAcsResponse(request);
+        } catch (ClientException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 }

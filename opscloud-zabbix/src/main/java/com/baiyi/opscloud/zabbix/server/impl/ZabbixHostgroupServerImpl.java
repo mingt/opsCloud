@@ -60,8 +60,10 @@ public class ZabbixHostgroupServerImpl implements ZabbixHostgroupServer {
             JsonNode jsonNode = zabbixHandler.api(request);
             return new ZabbixHostgroupMapper().mapFromJson(jsonNode.get(ZabbixServerImpl.ZABBIX_RESULT)).get(0);
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         return null;
     }
+
+
 }

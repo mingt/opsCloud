@@ -7,8 +7,8 @@ import com.baiyi.opscloud.common.base.CloudDBType;
 import com.baiyi.opscloud.common.base.Global;
 import com.baiyi.opscloud.common.util.BeanCopierUtils;
 import com.baiyi.opscloud.common.util.PasswordUtils;
-import com.baiyi.opscloud.decorator.CloudDBDatabaseDecorator;
-import com.baiyi.opscloud.decorator.CloudDBDecorator;
+import com.baiyi.opscloud.decorator.cloud.CloudDBDatabaseDecorator;
+import com.baiyi.opscloud.decorator.cloud.CloudDBDecorator;
 import com.baiyi.opscloud.domain.BusinessWrapper;
 import com.baiyi.opscloud.domain.DataTable;
 import com.baiyi.opscloud.domain.ErrorEnum;
@@ -18,9 +18,10 @@ import com.baiyi.opscloud.domain.generator.opscloud.OcCloudDbAttribute;
 import com.baiyi.opscloud.domain.generator.opscloud.OcCloudDbDatabase;
 import com.baiyi.opscloud.domain.param.cloud.CloudDBDatabaseParam;
 import com.baiyi.opscloud.domain.param.cloud.CloudDBParam;
-import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBAccountVO;
-import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBDatabaseVO;
-import com.baiyi.opscloud.domain.vo.cloud.OcCloudDBVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDatabaseSlowLogVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDBAccountVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDBDatabaseVO;
+import com.baiyi.opscloud.domain.vo.cloud.CloudDBVO;
 import com.baiyi.opscloud.facade.CloudDBFacade;
 import com.baiyi.opscloud.service.cloud.OcCloudDBAccountService;
 import com.baiyi.opscloud.service.cloud.OcCloudDBAttributeService;
@@ -73,9 +74,9 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
     protected CloudDBConfig cloudDBConfig;
 
     @Override
-    public DataTable<OcCloudDBVO.CloudDB> fuzzyQueryCloudDBPage(CloudDBParam.PageQuery pageQuery) {
+    public DataTable<CloudDBVO.CloudDB> fuzzyQueryCloudDBPage(CloudDBParam.PageQuery pageQuery) {
         DataTable<OcCloudDb> table = ocCloudDBService.fuzzyQueryOcCloudDBByParam(pageQuery);
-        List<OcCloudDBVO.CloudDB> page = BeanCopierUtils.copyListProperties(table.getData(), OcCloudDBVO.CloudDB.class);
+        List<CloudDBVO.CloudDB> page = BeanCopierUtils.copyListProperties(table.getData(), CloudDBVO.CloudDB.class);
         return new DataTable<>(page.stream().map(e -> cloudDBDecorator.decorator(e, 1)).collect(Collectors.toList()), table.getTotalNum());
     }
 
@@ -90,19 +91,18 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
         List<OcCloudDbAttribute> ocCloudDbAttributeList = ocCloudDBAttributeService.queryOcCloudDbAttributeByCloudDbId(id);
         for (OcCloudDbAttribute ocCloudDbAttribute : ocCloudDbAttributeList)
             ocCloudDBAttributeService.delOcCloudDbAttributeById(ocCloudDbAttribute.getId());
-
         return BusinessWrapper.SUCCESS;
     }
 
     @Override
     public BusinessWrapper<Boolean> syncCloudDB() {
         Map<String, ICloudDB> context = CloudDBFactory.getCloudDBContainer();
-        for (String key : context.keySet()) {
+        context.keySet().forEach(k -> {
             try {
-                context.get(key).syncDBInstance();
+                context.get(k).syncDBInstance();
             } catch (Exception e) {
             }
-        }
+        });
         return new BusinessWrapper<>(true);
     }
 
@@ -116,14 +116,14 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
     }
 
     @Override
-    public DataTable<OcCloudDBDatabaseVO.CloudDBDatabase> fuzzyQueryCloudDBDatabasePage(CloudDBDatabaseParam.PageQuery pageQuery) {
+    public DataTable<CloudDBDatabaseVO.CloudDBDatabase> fuzzyQueryCloudDBDatabasePage(CloudDBDatabaseParam.PageQuery pageQuery) {
         DataTable<OcCloudDbDatabase> table = ocCloudDBDatabaseService.fuzzyQueryOcCloudDBDatabaseByParam(pageQuery);
-        List<OcCloudDBDatabaseVO.CloudDBDatabase> page = BeanCopierUtils.copyListProperties(table.getData(), OcCloudDBDatabaseVO.CloudDBDatabase.class);
+        List<CloudDBDatabaseVO.CloudDBDatabase> page = BeanCopierUtils.copyListProperties(table.getData(), CloudDBDatabaseVO.CloudDBDatabase.class);
         return new DataTable<>(page.stream().map(e -> cloudDBDatabaseDecorator.decorator(e, pageQuery.getExtend())).collect(Collectors.toList()), table.getTotalNum());
     }
 
     @Override
-    public BusinessWrapper<Boolean> updateBaseCloudDBDatabase(OcCloudDBDatabaseVO.CloudDBDatabase cloudDBDatabase) {
+    public BusinessWrapper<Boolean> updateBaseCloudDBDatabase(CloudDBDatabaseVO.CloudDBDatabase cloudDBDatabase) {
         if (ocCloudDBDatabaseService.queryOcCloudDbDatabaseById(cloudDBDatabase.getId()) == null)
             return new BusinessWrapper<>(ErrorEnum.CLOUD_DB_DATABASE_NOT_EXIST);
         OcCloudDbDatabase ocCloudDbDatabase = BeanCopierUtils.copyProperties(cloudDBDatabase, OcCloudDbDatabase.class);
@@ -132,7 +132,7 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
     }
 
     @Override
-    public BusinessWrapper<Boolean> privilegeAccount(OcCloudDBAccountVO.PrivilegeAccount privilegeAccount) {
+    public BusinessWrapper<Boolean> privilegeAccount(CloudDBAccountVO.PrivilegeAccount privilegeAccount) {
         OcCloudDb ocCloudDb = ocCloudDBService.queryOcCloudDbById(privilegeAccount.getCloudDbId());
         if (ocCloudDb == null)
             return new BusinessWrapper<>(ErrorEnum.CLOUD_DB_NOT_EXIST);
@@ -141,7 +141,6 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
 
         String key = CloudDBType.getName(ocCloudDb.getCloudDbType());
         ICloudDB iCloudDB = CloudDBFactory.getCloudDBByKey(key);
-
         // 新增账户
         for (String accountPrivilege : privilegeAccount.getPrivileges()) {
             if (!accountMap.containsKey(accountPrivilege)) {
@@ -152,14 +151,21 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
             }
         }
         // 删除账户
-        for (String privilege : accountMap.keySet()) {
-            OcCloudDbAccount ocCloudDbAccount = accountMap.get(privilege);
-            //BusinessWrapper<Boolean> wrapper = iCloudDB.reokeAccountPrivilege(ocCloudDb, ocCloudDbAccount);
+        accountMap.keySet().forEach(k -> {
+            OcCloudDbAccount ocCloudDbAccount = accountMap.get(k);
             BusinessWrapper<Boolean> wrapper = iCloudDB.deleteAccount(ocCloudDb, ocCloudDbAccount);
             if (wrapper.isSuccess())
                 ocCloudDBAccountService.delOcCloudDbAccountById(ocCloudDbAccount.getId());
-        }
+        });
         return BusinessWrapper.SUCCESS;
+    }
+
+    @Override
+    public DataTable<CloudDatabaseSlowLogVO.SlowLog> queryCloudDBDatabaseSlowLogPage(CloudDBDatabaseParam.SlowLogPageQuery pageQuery) {
+        OcCloudDb ocCloudDb = ocCloudDBService.queryOcCloudDbByUniqueKey(pageQuery.getCloudDbType(), pageQuery.getDbInstanceId());
+        String key = CloudDBType.getName(ocCloudDb.getCloudDbType());
+        ICloudDB iCloudDB = CloudDBFactory.getCloudDBByKey(key);
+        return iCloudDB.querySlowLogPage(ocCloudDb, pageQuery);
     }
 
     private BusinessWrapper<Boolean> createAccount(ICloudDB iCloudDB, OcCloudDb ocCloudDb, String privilege) {
@@ -174,7 +180,7 @@ public class CloudDBFacadeImpl implements CloudDBFacade {
         ocCloudDbAccount.setWorkflow(1);
         ocCloudDbAccount.setComment(Global.CREATED_BY);
         BusinessWrapper<Boolean> wrapper = iCloudDB.createAccount(ocCloudDb, ocCloudDbAccount, privilege);
-        if(wrapper.isSuccess()){
+        if (wrapper.isSuccess()) {
             // 加密
             ocCloudDbAccount.setAccountPassword(stringEncryptor.encrypt(password));
             ocCloudDBAccountService.addOcCloudDbAccount(ocCloudDbAccount);

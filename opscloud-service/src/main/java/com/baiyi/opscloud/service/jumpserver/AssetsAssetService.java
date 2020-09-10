@@ -4,6 +4,8 @@ import com.baiyi.opscloud.domain.DataTable;
 import com.baiyi.opscloud.domain.generator.jumpserver.AssetsAsset;
 import com.baiyi.opscloud.domain.param.jumpserver.asset.AssetsAssetPageParam;
 
+import java.util.List;
+
 /**
  * @Author baiyi
  * @Date 2020/3/9 1:29 下午
@@ -17,8 +19,12 @@ public interface AssetsAssetService {
 
     AssetsAsset queryAssetsAssetByHostname(String hostname);
 
+    List<AssetsAsset> queryAll();
+
     void updateAssetsAsset(AssetsAsset assetsAsset);
 
     void addAssetsAsset(AssetsAsset assetsAsset);
+
+    void deleteAssetsAssetById(String id);
 
 }

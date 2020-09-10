@@ -26,20 +26,21 @@ public class OcUserGroup {
     private String source;
 
     /**
-     * 允许工作流申请
+     * 允许工单申请
      */
-    private Integer workflow;
+    @Column(name = "in_workorder")
+    private Integer inWorkorder;
 
     /**
      * 创建时间
      */
-    @Column(name = "create_time")
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     /**
      * 更新时间
      */
-    @Column(name = "update_time")
+    @Column(name = "update_time", insertable = false, updatable = false)
     private Date updateTime;
 
     /**
@@ -115,22 +116,12 @@ public class OcUserGroup {
         this.source = source;
     }
 
-    /**
-     * 获取允许工作流申请
-     *
-     * @return workflow - 允许工作流申请
-     */
-    public Integer getWorkflow() {
-        return workflow;
+    public Integer getInWorkorder() {
+        return inWorkorder;
     }
 
-    /**
-     * 设置允许工作流申请
-     *
-     * @param workflow 允许工作流申请
-     */
-    public void setWorkflow(Integer workflow) {
-        this.workflow = workflow;
+    public void setInWorkorder(Integer inWorkorder) {
+        this.inWorkorder = inWorkorder;
     }
 
     /**

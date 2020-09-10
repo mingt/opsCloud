@@ -2,15 +2,19 @@ package com.baiyi.opscloud.account.impl;
 
 
 import com.baiyi.opscloud.account.IAccount;
-import com.baiyi.opscloud.account.base.AccountType;
-import com.baiyi.opscloud.account.builder.OcUserBuilder;
+import com.baiyi.opscloud.account.builder.UserBuilder;
 import com.baiyi.opscloud.account.convert.LdapPersonConvert;
+import com.baiyi.opscloud.common.base.AccountType;
 import com.baiyi.opscloud.common.util.PasswordUtils;
 import com.baiyi.opscloud.domain.generator.opscloud.OcAccount;
+import com.baiyi.opscloud.domain.generator.opscloud.OcAuthRole;
+import com.baiyi.opscloud.domain.generator.opscloud.OcAuthUserRole;
 import com.baiyi.opscloud.domain.generator.opscloud.OcUser;
 import com.baiyi.opscloud.ldap.entry.Person;
 import com.baiyi.opscloud.ldap.repo.GroupRepo;
 import com.baiyi.opscloud.ldap.repo.PersonRepo;
+import com.baiyi.opscloud.service.auth.OcAuthRoleService;
+import com.baiyi.opscloud.service.auth.OcAuthUserRoleService;
 import com.google.common.collect.Lists;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.stereotype.Component;
@@ -19,6 +23,8 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.baiyi.opscloud.common.base.Global.BASE_ROLE_NAME;
 
 /**
  * @Author baiyi
@@ -37,9 +43,16 @@ public class LdapAccount extends BaseAccount implements IAccount {
     @Resource
     private GroupRepo groupRepo;
 
+    @Resource
+    private OcAuthUserRoleService ocAuthUserRoleService;
+
+    @Resource
+    private OcAuthRoleService ocAuthRoleService;
+
+
     @Override
     protected List<OcUser> getUserList() {
-        return personRepo.getPersonList().stream().map(e -> OcUserBuilder.build(e)).collect(Collectors.toList());
+        return personRepo.getPersonList().stream().map(UserBuilder::build).collect(Collectors.toList());
     }
 
 
@@ -67,7 +80,20 @@ public class LdapAccount extends BaseAccount implements IAccount {
         String password = (StringUtils.isEmpty(user.getPassword()) ? PasswordUtils.getPW(PASSWORD_LENGTH) : user.getPassword());
         user.setPassword(stringEncryptor.encrypt(password)); // 加密
         ocUserService.addOcUser(user);
+        initialUserBaseRole(user); // 初始化角色
+        // 初始化默认角色
         return personRepo.create(LdapPersonConvert.convertOcUser(user, password));
+    }
+
+    private void initialUserBaseRole(OcUser user) {
+        try {
+            OcAuthUserRole ocAuthUserRole = new OcAuthUserRole();
+            ocAuthUserRole.setUsername(user.getUsername());
+            OcAuthRole ocAuthRole = ocAuthRoleService.queryOcAuthRoleByName(BASE_ROLE_NAME);
+            ocAuthUserRole.setRoleId(ocAuthRole.getId());
+            ocAuthUserRoleService.addOcAuthUserRole(ocAuthUserRole);
+        } catch (Exception ignored) {
+        }
     }
 
     /**
@@ -91,7 +117,15 @@ public class LdapAccount extends BaseAccount implements IAccount {
 
     @Override
     public Boolean active(OcUser user, boolean active) {
-        return Boolean.TRUE;
+        if (!active) {
+            if (!personRepo.checkPersonInLdap(user.getUsername()))
+                return true; // 用户不存在
+            Person person = new Person();
+            person.setUsername(user.getUsername());
+            person.setUserPassword(PasswordUtils.getPW(20));
+            personRepo.update(person);
+        }
+        return true;
     }
 
     @Override
@@ -127,7 +161,7 @@ public class LdapAccount extends BaseAccount implements IAccount {
             //ocUserService.updateOcUser(ocUser);
             personRepo.update(person);
             return Boolean.TRUE;
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return Boolean.FALSE;
     }

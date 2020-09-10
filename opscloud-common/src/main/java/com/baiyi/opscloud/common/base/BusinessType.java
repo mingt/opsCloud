@@ -10,7 +10,13 @@ public enum BusinessType {
     SERVERGROUP(2),
     USER(3),
     USERGROUP(4),
-    CLOUD_DATABASE(5);
+    CLOUD_DATABASE(5),
+    /** 服务器器管理员账户 **/
+    SERVER_ADMINISTRATOR_ACCOUNT(6),
+    ALIYUN_RAM_ACCOUNT(7),
+    /** 应用授权 **/
+    APPLICATION(8)
+    ;
 
     private int type;
 

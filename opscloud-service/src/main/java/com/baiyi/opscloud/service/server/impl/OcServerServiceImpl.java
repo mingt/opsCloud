@@ -33,6 +33,19 @@ public class OcServerServiceImpl implements OcServerService {
     }
 
     @Override
+    public OcServer queryOcServerByIp(String ip) {
+        // select * from oc_server WHERE ( private_ip = #{ip} ) or( public_ip = #{ip} )
+        Example example = new Example(OcServer.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("privateIp", ip);
+        Example.Criteria criteria2 = example.createCriteria();
+        criteria2.andEqualTo("publicIp", ip);
+        example.or(criteria2);
+        PageHelper.startPage(1, 1);
+        return ocServerMapper.selectOneByExample(example);
+    }
+
+    @Override
     public OcServer queryOcServerById(int id) {
         return ocServerMapper.selectByPrimaryKey(id);
     }
@@ -78,9 +91,15 @@ public class OcServerServiceImpl implements OcServerService {
     @Override
     public List<OcServer> queryOcServerByServerGroupId(int serverGroupId) {
         Example example = new Example(OcServer.class);
+        example.setOrderByClause("serial_number");
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("serverGroupId", serverGroupId);
         return ocServerMapper.selectByExample(example);
+    }
+
+    @Override
+    public List<OcServer> queryAllOcServer() {
+        return ocServerMapper.selectAll();
     }
 
     @Override
@@ -101,6 +120,14 @@ public class OcServerServiceImpl implements OcServerService {
     @Override
     public int queryOcServerMaxSerialNumber(int serverGroupId) {
         OcServer ocServer = ocServerMapper.queryOcServerMaxSerialNumber(serverGroupId);
+        if (ocServer == null)
+            return 0;
+        return ocServer.getSerialNumber();
+    }
+
+    @Override
+    public int queryOcServerMaxSerialNumber(int serverGroupId, int envType) {
+        OcServer ocServer = ocServerMapper.queryOcServerMaxSerialNumberByEnvType(serverGroupId, envType);
         if (ocServer == null)
             return 0;
         return ocServer.getSerialNumber();

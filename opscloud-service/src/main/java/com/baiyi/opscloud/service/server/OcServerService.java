@@ -15,10 +15,19 @@ public interface OcServerService {
 
     OcServer queryOcServerByPrivateIp(String privateIp);
 
+    OcServer queryOcServerByIp(String ip);
+
     List<OcServer> queryOcServerByServerGroupId(int serverGroupId);
+
+    List<OcServer> queryAllOcServer();
 
     OcServer queryOcServerById(int id);
 
+    /**
+     * 统计服务器组中的服务器数量
+     * @param id
+     * @return
+     */
     int countByServerGroupId(int id);
 
     int countByEnvType(int envType);
@@ -36,5 +45,7 @@ public interface OcServerService {
     void deleteOcServerById(int id);
 
     int queryOcServerMaxSerialNumber(int serverGroupId);
+
+    int queryOcServerMaxSerialNumber(int serverGroupId, int envType);
 
 }

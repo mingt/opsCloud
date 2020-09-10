@@ -36,11 +36,25 @@
             <groupId>com.baiyi</groupId>
             <artifactId>opscloud-vmware-vcsa</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.baiyi</groupId>
+            <artifactId>opscloud-tencent-cloud-cvm</artifactId>
+        </dependency>
 
         <!--cloud-db-->
         <dependency>
             <groupId>com.baiyi</groupId>
             <artifactId>opscloud-aliyun-rds-mysql</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.baiyi</groupId>
+            <artifactId>opscloud-aliyun-ram</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.baiyi</groupId>
+            <artifactId>opscloud-aliyun-log</artifactId>
         </dependency>
 
         <dependency>
@@ -54,6 +68,10 @@
         <dependency>
             <groupId>com.baiyi</groupId>
             <artifactId>opscloud-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baiyi</groupId>
+            <artifactId>opscloud-aliyun-log</artifactId>
         </dependency>
     </dependencies>
 

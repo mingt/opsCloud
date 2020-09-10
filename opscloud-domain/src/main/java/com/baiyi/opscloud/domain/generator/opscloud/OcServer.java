@@ -1,10 +1,12 @@
 package com.baiyi.opscloud.domain.generator.opscloud;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
 
 @Table(name = "oc_server")
-public class OcServer {
+public class OcServer implements Serializable {
+    private static final long serialVersionUID = 2234702948079569429L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -40,13 +42,20 @@ public class OcServer {
     @Column(name = "monitor_status")
     private Integer monitorStatus;
 
-    @Column(name = "create_time")
+    private String comment;
+
+    @Column(name = "server_status")
+    private Integer serverStatus;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
-    @Column(name = "update_time")
+    @Column(name = "update_time", insertable = false, updatable = false)
     private Date updateTime;
 
-    private String comment;
 
     /**
      * @return id
@@ -242,6 +251,29 @@ public class OcServer {
      */
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+
+    public Integer getServerStatus() {
+        return serverStatus;
+    }
+
+    public void setServerStatus(Integer serverStatus) {
+        this.serverStatus = serverStatus;
+    }
+
+    /**
+     * @return is_active
+     */
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    /**
+     * @param isActive
+     */
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     /**

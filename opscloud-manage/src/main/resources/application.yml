@@ -1,11 +1,12 @@
 server:
   servlet:
     context-path: /oc3
-
 spring:
   profiles:
     active: @env@
     include: common
+  application:
+    name: opscloud
   http:
     encoding:
       force: true

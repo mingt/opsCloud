@@ -16,8 +16,16 @@ public class JumpserverConfig {
 
     private String version = "1.5.6";
     private String url;
-//    private String user;
-//    private String password;
     private String coco;
+    private JumpserverAdmin admin;
+
+
+    @Data
+    public static class JumpserverAdmin {
+
+        private String username;
+        private String password;
+    }
+
 
 }

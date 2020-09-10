@@ -15,15 +15,19 @@ public class OcAuthRole {
     @Column(name = "role_name")
     private String roleName;
 
+    @Column(name = "access_level")
+    private Integer accessLevel;
+
     /**
      * 角色描述
      */
     private String comment;
 
     /**
-     * 允许工作流申请
+     * 在工单中
      */
-    private Integer workflow;
+    @Column(name = "in_workorder")
+    private Integer inWorkorder;
 
     /**
      * api允许访问的资源路径(用于公共接口2次鉴权)
@@ -31,10 +35,10 @@ public class OcAuthRole {
     @Column(name = "resource_name")
     private String resourceName;
 
-    @Column(name = "create_time")
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
-    @Column(name = "update_time")
+    @Column(name = "update_time", insertable = false, updatable = false)
     private Date updateTime;
 
     /**
@@ -69,6 +73,14 @@ public class OcAuthRole {
         this.roleName = roleName;
     }
 
+    public Integer getAccessLevel() {
+        return accessLevel;
+    }
+
+    public void setAccessLevel(Integer accessLevel) {
+        this.accessLevel = accessLevel;
+    }
+
     /**
      * 获取角色描述
      *
@@ -87,18 +99,12 @@ public class OcAuthRole {
         this.comment = comment;
     }
 
-    /**
-     * @return workflow
-     */
-    public Integer getWorkflow() {
-        return workflow;
+    public Integer getInWorkorder() {
+        return inWorkorder;
     }
 
-    /**
-     * @param workflow
-     */
-    public void setWorkflow(Integer workflow) {
-        this.workflow = workflow;
+    public void setInWorkorder(Integer inWorkorder) {
+        this.inWorkorder = inWorkorder;
     }
 
     public String getResourceName() {

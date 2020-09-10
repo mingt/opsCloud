@@ -5,8 +5,9 @@ import com.aliyuncs.IAcsClient;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import com.baiyi.opscloud.aliyun.core.AliyunCore;
-import com.baiyi.opscloud.aliyun.core.config.AliyunAccount;
 import com.baiyi.opscloud.aliyun.core.config.AliyunCoreConfig;
+import com.baiyi.opscloud.common.util.BeanCopierUtils;
+import com.baiyi.opscloud.domain.vo.cloud.AliyunAccountVO;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -26,13 +27,26 @@ public class AliyunCoreImpl implements AliyunCore {
     private AliyunCoreConfig aliyunCoreConfig;
 
     @Override
-    public List<AliyunAccount> getAccounts() {
+    public List<AliyunAccountVO.AliyunAccount> queryAliyunAccount() {
+       return BeanCopierUtils.copyListProperties(getAccounts(),AliyunAccountVO.AliyunAccount.class);
+    }
+
+    @Override
+    public List<AliyunCoreConfig.AliyunAccount> getAccounts() {
         return aliyunCoreConfig.getAccounts();
     }
 
     @Override
+    public AliyunCoreConfig.AliyunAccount getAccount() {
+        for (AliyunCoreConfig.AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
+            if (aliyunAccount.getMaster())
+                return aliyunAccount;
+        return null;
+    }
+
+    @Override
     public List<String> getRegionIds() {
-        for (AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
+        for (AliyunCoreConfig.AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
             if (aliyunAccount.getMaster())
                 return aliyunAccount.getRegionIds();
         return Collections.emptyList();
@@ -40,14 +54,14 @@ public class AliyunCoreImpl implements AliyunCore {
 
     @Override
     public IAcsClient getAcsClient(String regionId) {
-        for (AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
+        for (AliyunCoreConfig.AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
             if (aliyunAccount.getMaster())
                 return getAcsClient(regionId, aliyunAccount);
         return null;
     }
 
     @Override
-    public IAcsClient getAcsClient(String regionId, AliyunAccount aliyunAccount) {
+    public IAcsClient getAcsClient(String regionId, AliyunCoreConfig.AliyunAccount aliyunAccount) {
         String defRegionId;
         if (StringUtils.isEmpty(aliyunAccount.getRegionId())) {
             defRegionId = aliyunAccount.getRegionId();
@@ -55,13 +69,12 @@ public class AliyunCoreImpl implements AliyunCore {
             defRegionId = regionId;
         }
         IClientProfile profile = DefaultProfile.getProfile(defRegionId, aliyunAccount.getAccessKeyId(), aliyunAccount.getSecret());
-        IAcsClient client = new DefaultAcsClient(profile);
-        return client;
+        return new DefaultAcsClient(profile);
     }
 
     @Override
-    public AliyunAccount getAliyunAccountByUid(String uid) {
-        for (AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
+    public AliyunCoreConfig.AliyunAccount getAliyunAccountByUid(String uid) {
+        for (AliyunCoreConfig.AliyunAccount aliyunAccount : aliyunCoreConfig.getAccounts())
             if (aliyunAccount.getUid().equals(uid))
                 return aliyunAccount;
         return null;
